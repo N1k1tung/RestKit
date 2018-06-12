@@ -389,19 +389,18 @@ static void AFRKNetworkReachabilityReleaseCallback(const void *info) {
 
     SCNetworkReachabilityContext context = {0, (__bridge void *)callback, AFRKNetworkReachabilityRetainCallback, AFRKNetworkReachabilityReleaseCallback, NULL};
     SCNetworkReachabilitySetCallback(self.networkReachability, AFRKNetworkReachabilityCallback, &context);
-
-    /* Network reachability monitoring does not establish a baseline for IP addresses as it does for hostnames, so if the base URL host is an IP address, the initial reachability callback is manually triggered.
-     */
-    if (AFRKURLHostIsIPAddress(self.baseURL)) {
-        SCNetworkReachabilityFlags flags;
-        SCNetworkReachabilityGetFlags(self.networkReachability, &flags);
-        dispatch_async(dispatch_get_main_queue(), ^{
-            AFRKNetworkReachabilityStatus status = AFRKNetworkReachabilityStatusForFlags(flags);
-            callback(status);
-        });
-    }
-
     SCNetworkReachabilityScheduleWithRunLoop(self.networkReachability, CFRunLoopGetMain(), kCFRunLoopCommonModes);
+    
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+        SCNetworkReachabilityFlags flags;
+        if (SCNetworkReachabilityGetFlags(self.networkReachability, &flags)) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                AFRKNetworkReachabilityStatus status = AFRKNetworkReachabilityStatusForFlags(flags);
+                callback(status);
+            });
+        }
+    });
 }
 
 - (void)stopMonitoringNetworkReachability {

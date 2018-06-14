@@ -578,6 +578,19 @@ static BOOL AFRKSecKeyIsEqualToKey(SecKeyRef key1, SecKeyRef key2) {
     }
 }
 
+- (void)reset {
+    if (![self isFinished] && ![self isCancelled])
+        return;
+    [self.lock lock];
+    _cancelled = NO;
+    self.response = nil;
+    self.error = nil;
+    self.responseData = nil;
+    self.totalBytesRead = 0;
+    self.state = AFRKOperationReadyState;
+    [self.lock unlock];
+}
+
 #pragma mark - NSURLConnectionDelegate
 
 - (void)connection:(NSURLConnection *)connection

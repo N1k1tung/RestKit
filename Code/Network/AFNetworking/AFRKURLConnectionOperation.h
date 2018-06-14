@@ -299,6 +299,11 @@ NSCoding, NSCopying>
  */
 - (void)setCacheResponseBlock:(NSCachedURLResponse * (^)(NSURLConnection *connection, NSCachedURLResponse *cachedResponse))block;
 
+/**
+ resets operation making it able to repeat
+ */
+- (void)reset;
+
 @end
 
 ///----------------
